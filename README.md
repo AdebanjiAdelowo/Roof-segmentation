@@ -36,11 +36,19 @@ Roof-segmentation/
 
 ## Installation
 
+`tensorflow<2.16` (needed for the pre-Keras-3 `keras.preprocessing.image.ImageDataGenerator` path that `data.py` uses) has no resolvable wheel on Python 3.12 or newer. Use Python 3.11:
+
 ```bash
+python3.11 -m venv .venv
+source .venv/bin/activate
 pip install "tensorflow<2.16" numpy scikit-image matplotlib
 ```
 
-`data.py` calls `from keras.preprocessing.image import ImageDataGenerator`. As of Keras 3 (the default when `tensorflow>=2.16` is installed unpinned), `ImageDataGenerator` is no longer exposed at that public path (verified directly against an installed Keras 3.13.2 tree: the `keras/preprocessing/` submodule no longer exists at all, and the class survives only internally under `keras.src.legacy.preprocessing`), so this import fails on a fresh, unpinned install. Pinning `tensorflow<2.16` installs the matching pre-Keras-3 `keras` dependency for which this code was written. `model.py` separately calls `tf.keras.optimizers.Adam(...)` without ever importing `tensorflow as tf` in that file; this is very likely a `NameError` on current Keras (which does not leak a bare `tf` name through the wildcard imports `model.py` uses) but was not re-run end to end in this pass to confirm dynamically, since this machine's own TensorFlow install is independently broken (unrelated protobuf conflict) and reproducing a clean legacy environment was out of scope here.
+This was verified directly on Apple Silicon (macOS, arm64) in a clean virtual environment: it resolves to `tensorflow==2.15.1` with `keras==2.15.0`, and both `model.py` (`unet()` builds and compiles) and `data.py` (`ImageDataGenerator` import) work with that combination.
+
+`data.py` calls `from keras.preprocessing.image import ImageDataGenerator`. As of Keras 3 (the default when `tensorflow>=2.16` is installed unpinned), `ImageDataGenerator` is no longer exposed at that public path (verified directly against an installed Keras 3.13.2 tree: the `keras/preprocessing/` submodule no longer exists at all, and the class survives only internally under `keras.src.legacy.preprocessing`), so this import fails on a fresh, unpinned install on Python 3.12+. Pinning `tensorflow<2.16` on Python 3.11 installs the matching pre-Keras-3 `keras` dependency for which this code was written.
+
+`model.py` previously called `tf.keras.optimizers.Adam(...)` without ever importing `tensorflow as tf` in that file, which raised `NameError: name 'tf' is not defined` as soon as `unet()` was called (confirmed by direct execution). This has been fixed by adding `import tensorflow as tf` to `model.py`'s imports.
 
 ## Usage
 
