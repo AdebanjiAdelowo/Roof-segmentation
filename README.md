@@ -21,6 +21,15 @@ Because only 25 training images were available, `ImageDataGenerator`-based augme
 
 The model was evaluated qualitatively by visually comparing predicted masks to the input test images, since no ground-truth masks were available for the test sets. No quantitative metric (e.g. IoU, pixel accuracy) was computed against a labeled test set. Predicted masks (raw sigmoid output, not thresholded) for the test images are written to `data/test/labels` by `saveResult`.
 
+![Five test images and the U-Net's predicted rooftop masks](docs/figures/test_predictions.png)
+
+*The five included test images (top) and the saved model predictions from `data/test/labels`
+(bottom). There are no ground-truth masks for these images. The predictions pick out the most
+prominent roofs but miss or fragment several buildings, for example the lower buildings in `553`
+and parts of the grey roofs in `535`. Composed by
+[`docs/figures/make_prediction_figure.py`](docs/figures/make_prediction_figure.py) from the saved
+files; no inference is rerun.*
+
 ## Repository Structure
 
 ```
